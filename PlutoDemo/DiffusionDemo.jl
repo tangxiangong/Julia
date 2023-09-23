@@ -15,7 +15,7 @@ macro bind(def, element)
 end
 
 # ╔═╡ cffed748-5693-11ee-0070-bf9c60656096
-using Pluto,PlutoUI, Plots, AlphaStableDistributions, Distributions, LaTeXStrings, LoopVectorization
+using Pluto, PlutoUI, Plots, AlphaStableDistributions, Distributions, LaTeXStrings, LoopVectorization
 
 # ╔═╡ 57d03b7a-fd68-4c08-95ca-ce677604faef
 md"""请选择扩散类型 $(@bind cls Select(["布朗运动", "复合布朗运动", "莱维运动"]))"""
@@ -131,24 +131,35 @@ begin
 end
 
 # ╔═╡ 6899db0f-78ad-4f7a-94f8-4489f7c88e46
-function msd(Ts, N, τ=0.01) 
+function msd(Ts, N, traj, param, τ=0.01) 
 	T_max = Ts[end]
 	index = @. Int(Ts / τ) + 1
 	s = zeros(Float64, length(Ts))
-	@inbounds for _ in 1:N
-		~, x = levy(T_max, 2.0)
+	@inbounds Threads.@threads for _ in 1:N
+		~, x = traj(T_max, param)
 		@. s += x[index]^2
 	end
 	s ./= N
 	return s
 end
 
-# ╔═╡ 890650e3-de48-4609-aef1-3cf4f373f701
+# ╔═╡ d2aca822-0687-4543-bdc3-0039e4fde362
+# ╠═╡ disabled = true
+#=╠═╡
 begin
-	Ts = [10, 20, 30, 50, 100]
-	N = 100000
-	msd(Ts, N)
+	Ts = collect(10:10:100)
+	N  = 10000
+	if cls == "复合布朗运动"
+		m = msd(Ts, N, subbrown, p)
+	else
+		m = msd(Ts, N, levy, p)
+	end
+	plot(Ts, m, title="msd", label=false, grid=false)
+	scatter!(Ts, m, label=false)
+	xlabel!(L"time $t$")
+	ylabel!("MSD")
 end
+  ╠═╡ =#
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -455,6 +466,12 @@ deps = ["Calculus", "NaNMath", "SpecialFunctions"]
 git-tree-sha1 = "5837a837389fccf076445fce071c8ddaea35a566"
 uuid = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 version = "0.6.8"
+
+[[deps.EpollShim_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "8e9441ee83492030ace98f9789a654a6d0b1f643"
+uuid = "2702e6a9-849d-5ed8-8c21-79e8b8f9ee43"
+version = "0.0.20230411+0"
 
 [[deps.ExceptionUnwrapping]]
 deps = ["Test"]
@@ -1460,7 +1477,7 @@ uuid = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
 version = "0.21.64"
 
 [[deps.Wayland_jll]]
-deps = ["Artifacts", "Expat_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg", "XML2_jll"]
+deps = ["Artifacts", "EpollShim_jll", "Expat_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg", "XML2_jll"]
 git-tree-sha1 = "ed8d92d9774b077c53e1da50fd81a36af3744c1c"
 uuid = "a2964d1f-97da-50d4-b82a-358c7fce9d89"
 version = "1.21.0+0"
@@ -1707,11 +1724,11 @@ version = "1.4.1+0"
 # ╟─37c0d995-2aa2-4197-8bcd-28253b719f13
 # ╟─7a9c15c6-831b-42c0-a79d-9e1d80e45480
 # ╟─5a7eb107-8b75-4709-9481-b3148160d560
-# ╠═b347de40-767f-46fa-9ca9-9a00ac2980af
+# ╟─b347de40-767f-46fa-9ca9-9a00ac2980af
+# ╠═d2aca822-0687-4543-bdc3-0039e4fde362
 # ╠═cffed748-5693-11ee-0070-bf9c60656096
 # ╠═387f34f2-11fd-4a54-8a1e-fa5048e0c8fa
 # ╠═55163c04-c116-4fc9-8425-5903aa69df72
 # ╠═6899db0f-78ad-4f7a-94f8-4489f7c88e46
-# ╠═890650e3-de48-4609-aef1-3cf4f373f701
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
