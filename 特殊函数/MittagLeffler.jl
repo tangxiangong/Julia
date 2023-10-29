@@ -1,1 +1,2 @@
-using SpecialFunctions
+import SpecialFunctions:gamma
+
