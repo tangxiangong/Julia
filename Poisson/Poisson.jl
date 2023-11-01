@@ -1,5 +1,5 @@
-import gmsh
 using Gridap, GridapGmsh
+import GridapGmsh:gmsh
 
 """
     generate_mesh(height::Float64=1.0, width::Float64=1.0, lc::Float64=0.05, 
