@@ -7,7 +7,7 @@ import GridapGmsh:gmsh
 调用 Gmsh API 生成第一象限中原点为左下顶点、高度为 `height`、宽度为 `width` 的矩形区域的三角网格, 单元尺寸为 `lc`, 
 Dirichlet 边界的标签为 `dirichlet_tags`, 并且将网格数据保存在路径 `path` 下的名为 `name` 且后缀名为 `.msh` 的文件中.
 """
-function generate_mesh(height::Float64=1.0, width::Float64=1.0, lc::Float64=0.05, 
+function generate_mesh(height::Float64=1.0, width::Float64=1.0, lc=0.01, 
     dirichlet_tags::String="boundary", path::String="./", name::String="model") :: String 
     # 初始化
     gmsh.initialize()
@@ -78,7 +78,7 @@ end
 
 f(x) = 2 * π^2 * sin(π*x[1]) * sin(π*x[2])
 mesh = generate_mesh()
-# uₕ = PoissonSolver(mesh, f)
+uₕ = PoissonSolver(mesh, f)
 # u(x) = sin(π*x[1])*sin(π*x[2])
 # e = u - uₕ 
 # el2 = sqrt(sum(∫(e * e) * dΩ))

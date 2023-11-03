@@ -73,8 +73,7 @@ function solver(T::Real, height::Real, width::Real, τ::Float64, h::Float64, f::
     A = similar(mass)
     rhs = zeros(num_dofs)
     U = zeros(num_dofs, num_time_stepping)
-    u_pre = interpolate_everywhere(u₀, V)
-
+    u_pre = u₀
     for n in 1:num_time_stepping
         A .= mass + τs[n] * stiff
         ft = x -> τs[n] * f(x, t[n+1])
@@ -86,28 +85,6 @@ function solver(T::Real, height::Real, width::Real, τ::Float64, h::Float64, f::
     U
 end
 
-# domain = (0, 1, 0, 1)
-# partition = (10, 10)
-# model = CartesianDiscreteModel(domain, partition)
-# reffe = ReferenceFE(lagrangian, Float64, 1)
-# V = TestFESpace(model, reffe; conformity=:H1, dirichlet_tags="boundary")
-# U = TrialFESpace(V, x->0)
-# Ω = Triangulation(model)
-# dΩ = Measure(Ω, 3)    
-
-# f(x) = 2 * π^2 * sin(π*x[1]) * sin(π*x[2])
-# a(u, v) = ∫(∇(v) ⊙ ∇(u)) * dΩ
-# L(v) = ∫(v * f) * dΩ
-
-# # op = AffineFEOperator(a, L, U, V)
-# fs = assemble_vector(L, V)
-# # num_free_dofs(U)
-# # assemble_matrix(a, U, V) == get_matrix(op)
-# # assemble_vector(L, V) == get_vector(op)
-# # r = rand(81);
-# fh = FEFunction(U, fs)
-# # get_free_dof_values(rf) == r
-# fh(Point(1/2,1/2))
 f(x, t) = (2 * π^2 * sinpi(x[1]) * sinpi(x[2])) * t
 u₀(x) = sinpi(x[1]) * sinpi(x[2])
-@btime solver(1, 1, 1, 0.01, 0.001, f, u₀);
+@time u = solver(1, 1, 1, 0.01, 0.01, f, u₀);
