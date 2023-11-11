@@ -158,7 +158,7 @@ norm_error(̄u₁, u₂, dΩ)
 """
 function norm_error(u₁, u₂, dΩ, scarlar_or_vector="scalar")
     @assert scarlar_or_vector in ["scalar", "vector"]
-    
+
     e = u₁ - u₂
     if scarlar_or_vector == "scalar"
         L²_error = ∫(e * e)dΩ |> sum |> sqrt
@@ -169,3 +169,21 @@ function norm_error(u₁, u₂, dΩ, scarlar_or_vector="scalar")
     end
     L²_error, H¹_error
 end
+
+
+
+#= 示例 =#
+
+domain = (0, 1, 0, 1)
+h = 1/128
+mesh = spatialmesh(domain, h)
+fes = FESpaces(mesh)
+initals = (x->VectorValue(x[1], x[2]), x->sinpi(x[1]) * sinpi(x[2]))
+sources = ((x, t)->VectorValue(exp(-t)*x[1], exp(-t)*x[2]), (x, t)->exp(-t)*norm(x))
+j⃗ = VectorValue(1.0, 2.0)
+v₁, u₁ = solver((1.0, 1/32, 0.6), fes, j⃗, initials, sources)
+v₂, u₂ = solver((1.0, 1/64, 0.6), fes, j⃗, initials, sources)
+# 误差
+~, ~, (Ω, dΩ) = fes
+errorᵥ = norm_error(v₁, v₂, dΩ, "vector") 
+errorᵤ = norm_error(u₁, u₂, dΩ, "scalar")
