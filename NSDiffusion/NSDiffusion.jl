@@ -28,30 +28,23 @@ function spatialmesh(domain::NTuple{4, <:Real}, h::Float64; path::String = "./",
     
     gmsh.initialize()
     gmsh.model.add(name)
-
     p₁ = gmsh.model.geo.addPoint(a, c, 0, h)
     p₂ = gmsh.model.geo.addPoint(b, c, 0, h)
     p₃ = gmsh.model.geo.addPoint(b, d, 0, h)
     p₄ = gmsh.model.geo.addPoint(a, d, 0, h)
-
     ℓ₁ = gmsh.model.geo.addLine(p₁, p₂)
     ℓ₂ = gmsh.model.geo.addLine(p₂, p₃)
     ℓ₃ = gmsh.model.geo.addLine(p₃, p₄)
     ℓ₄ = gmsh.model.geo.addLine(p₄, p₁)
-
     curve_loop = gmsh.model.geo.addCurveLoop([ℓ₁, ℓ₂, ℓ₃, ℓ₄])
     plane_surface = gmsh.model.geo.addPlaneSurface([curve_loop])
-
     gmsh.model.geo.synchronize()
-
     DirichletBC_group = gmsh.model.addPhysicalGroup(1, [ℓ₁, ℓ₂, ℓ₃, ℓ₄])
     gmsh.model.addPhysicalGroup(2, [plane_surface], 1)
     gmsh.model.setPhysicalName(1, DirichletBC_group, "boundary")
-
     gmsh.model.mesh.generate(2)
     file_path = string(path, name, ".msh")
-    gmsh.write(file_path)
-    
+    gmsh.write(file_path)   
     gmsh.finalize()
 
     file_path
@@ -145,9 +138,32 @@ function solver(temporalgrids, fes, j⃗, initials, sources)
         b .= assemble_vector(ℓ, Y)
         # 求解
         cg!(solution, A, b)
-        # 组装有限元函数
+        # 有限元函数
         vs[n+1], ~, us[n+1] = FEFunction(X, solution)
     end
     vs, us
 end
 
+""""
+    计算 L2 和 H1 误差
+
+若两个函数均为有限元空间中的函数，则对应的基函数必须一致， 否则，需要进行插值处理。
+```julia
+# 若 u₁ u₂ 分别对应于剖分 Ω₁ （疏） Ω₂ (密)， 和空间 U₁ U₂。
+# 将函数 u₁ 插值到空间 U₂ 中:
+̄u₁ = interpolate(u₁, U₂)
+# 计算误差
+norm_error(̄u₁, u₂, dΩ)
+```
+"""
+function norm_error(u₁, u₂, dΩ, scarlar_or_vector="scalar")
+    e = u₁ - u₂
+    if scarlar_or_vector == "scalar"
+        L²_error = ∫(e * e)dΩ |> sum |> sqrt
+        H¹_error = ∫(e * e + ∇(e) ⋅ ∇(e))dΩ |> sum |> sqrt
+    else
+        L²_error = ∫(e ⋅ e)dΩ |> sum |> sqrt
+        H¹_error = ∫(e ⋅ e + ∇(e) ⊙ ∇(e))dΩ |> sum |> sqrt
+    end
+    L²_error, H¹_error
+end
