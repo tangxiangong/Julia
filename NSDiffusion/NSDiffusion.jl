@@ -56,7 +56,7 @@ end
 function FESpaces(mesh="./model.msh", orders::NTuple{2, Int}=(2, 1))
     model = GmshDiscreteModel(mesh)
     # Reference Finite Elements
-    reffeᵥ = ReferenceFE(lagrangian, VectorValue(2, Float64), orders[1])
+    reffeᵥ = ReferenceFE(lagrangian, VectorValue{2, Float64}, orders[1]; space=:P)
     reffeₚ = ReferenceFE(lagrangian, Float64, orders[1]-1; space=:P)
     reffeᵤ = ReferenceFE(lagrangian, Float64, orders[2])
     # Test Fuction Spaces
@@ -66,7 +66,7 @@ function FESpaces(mesh="./model.msh", orders::NTuple{2, Int}=(2, 1))
     # Trial Function Spaces
     V = TrialFESpace(W, VectorValue(0.0, 0.0))
     P = TrialFESpace(Q)
-    U = TrialFESpace(V, 0.0)
+    U = TrialFESpace(Z, 0.0)
     # MultiFiled Trial/Test Function Spaces
     X = MultiFieldFESpace([V, P, U])
     Y = MultiFieldFESpace([W, Q, Z])
@@ -122,11 +122,11 @@ function solver(temporalgrids, fes, j⃗, initials, sources)
     solution = zeros(num_dofs)
     vs = Vector(length(t), V)
     us = Vector(length(t), U)
-    vs[1] = interpolate(v₀, V)
-    us[1] = interpolate(u₀, U)
+    vs[1] = interpolate_everywhere(v₀, V)
+    us[1] = interpolate_everywhere(u₀, U)
     @inbounds for n in eachindex(τ)
         # 对流项
-        conv((v, p, u), (w, q, w)) = ∫(w⊙((∇(v))'⋅vs[n]))dΩ
+        conv((v, p, u), (w, q, φ)) = ∫(w⊙((∇(v))'⋅vs[n]))dΩ
         C .= assemble_matrix(conv, X, Y)
         # 总系数矩阵
         A .= M + τ[n] * (S + C)
