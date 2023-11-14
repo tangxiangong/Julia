@@ -11,7 +11,7 @@ using PlutoUI; TableOfContents()
 using Gridap, GridapGmsh, GLMakie, GridapMakie, FileIO, IterativeSolvers; import GridapGmsh: gmsh; import Images: load
 
 # ╔═╡ 3753f1ba-1c66-4fe5-98bb-9776cae1868d
-md"# Navier--Stokes equation and [Gridap.jl](https://github.com/gridap/Gridap.jl)"
+md"# Solve incompressible Navier--Stokes equation using [Gridap.jl](https://github.com/gridap/Gridap.jl)"
 
 # ╔═╡ 805c5972-4cfb-4644-8f1f-01d963a77f85
 md"## Model and Its Euler--FEM Scheme"
@@ -69,7 +69,7 @@ md"""
 ### Genarate Meshes
 Here, we take the ``\Omega=[a, b]\times [c, d]`` and ``t_n = n\tau`` with ``\tau = T/N`` for an example. 
 
-The function ` CartesianDiscreteModel((a, b, c, d), (n, m))` can generate the Cartesian meshes for the rectangle ``[a, b]\times [c, d]`` with partition numbers ``n
+The function ` CartesianDiscreteModel((a, b, c, d), (n, m))` can generate the Cartesian meshes for the rectangle ``[a, b]\times [c, d]`` with partitions ``n
 `` and ``m`` on each direction."""
 
 # ╔═╡ 55677152-0e17-43af-9de1-cb73f58387fb
@@ -78,7 +78,7 @@ The temporal meshes is simple here, so we directly show the codes.
 """
 
 # ╔═╡ 8cab7050-9eed-4b7f-bc79-6a2835f4a5e8
-temporalmesh(T, τ) = 0.0:τ:T
+temporalmesh(T, τ) = collect(0.0:τ:T)
 
 # ╔═╡ e6d64c08-8259-408b-98ea-d08de16de82c
 md"""
@@ -115,7 +115,7 @@ function FESpaces(;domain, partition, gmesh=false, mesh="./model.msh", order::In
 end
 
 # ╔═╡ 049cd767-8928-4501-beb5-fab5a061335b
-domain = (0, 1, 0, 1); partition = (64, 64); nothing
+domain = (0, 1, 0, 1); partition = (32, 32); nothing
 
 # ╔═╡ 57ed56af-333d-47a7-8a84-d9382c529b52
 md"""
@@ -165,13 +165,7 @@ function assemble_mass_stiff_matrix(X, Y, dΩₕ)
 end
 
 # ╔═╡ ba5598e1-98f4-4c4e-baee-302bdecd10a1
-M, S = assemble_mass_stiff_matrix(X, Y, dΩₕ); 
-
-# ╔═╡ a3e70d22-2970-4163-b21d-1c9211430ec7
-M
-
-# ╔═╡ fda3b241-0c0e-4844-98c9-2b5596fbb7b2
-S
+M, S = assemble_mass_stiff_matrix(X, Y, dΩₕ)
 
 # ╔═╡ 717aaee0-c53d-41df-b793-cc20c1c362e5
 md"""
@@ -224,12 +218,15 @@ begin
 end
 
 # ╔═╡ 9e486b78-93b4-4b7b-9351-cfb7bf38939f
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	fes = ((X, Y), (Uₕ, Pₕ), (Ωₕ, dΩₕ))
 	T = 1.0
 	τ = 1/32
 	u⃗ = solver((T, τ), fes, u⃗⁰, f⃗)
 end
+  ╠═╡ =#
 
 # ╔═╡ ea3bbf87-d216-45f2-8402-992e71b39037
 function norm_error(u₁, u₂, dΩ)
@@ -239,8 +236,11 @@ function norm_error(u₁, u₂, dΩ)
     L²_error, H¹_error
 end
 
-# ╔═╡ 0023d767-7c89-4448-a707-d09ba615d52c
-norm_error(x->u⃗ₑ(x, T), u⃗, dΩₕ)
+# ╔═╡ 2615c98f-9345-430f-b21c-b6ae574107de
+# ╠═╡ disabled = true
+#=╠═╡
+e = norm_error(x->u⃗ₑ(x, T), u⃗, dΩₕ)
+  ╠═╡ =#
 
 # ╔═╡ fc37e1b4-53ec-4fff-929b-4e234fe72520
 md"""
@@ -248,7 +248,7 @@ md"""
 """
 
 # ╔═╡ efb328b1-cb16-4f16-9140-b126c9281a3b
-md"One can also use following function to generate spatial meshes with the help of `GMSH`, whose mesh information is default saved in the `model.msh` file which locates in the current working directory $(pwd())."
+md"One can also use following function to generate spatial meshes with the help of `GMSH`, whose mesh information is default saved in the `model.msh` file which locates in the current directory $(pwd())."
 
 # ╔═╡ 0f5033b0-0716-4a91-bd8f-3b67a8399bd8
 function gmesh(domain::NTuple{4, <:Real}, h::Float64; path::String = "./", name::String = "model")
@@ -288,6 +288,8 @@ GridapGmsh = "3025c34a-b394-11e9-2a55-3fee550c04c8"
 GridapMakie = "41f30b06-6382-4b60-a5f7-79d86b35bf5d"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MKL = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
@@ -298,6 +300,7 @@ GridapGmsh = "~0.7.0"
 GridapMakie = "~0.1.2"
 Images = "~0.26.0"
 IterativeSolvers = "~0.9.3"
+MKL = "~0.6.1"
 PlutoUI = "~0.7.53"
 """
 
@@ -307,7 +310,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.0-rc1"
 manifest_format = "2.0"
-project_hash = "46374d01a3ebe797015b812a8983cd7c3b3e2105"
+project_hash = "5b5c57ebd3cb732fae315651fd03e4ccb6bdf728"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1381,6 +1384,12 @@ git-tree-sha1 = "65f28ad4b594aebe22157d6fac869786a255b7eb"
 uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
 version = "0.1.4"
 
+[[deps.MKL]]
+deps = ["Artifacts", "Libdl", "LinearAlgebra", "MKL_jll"]
+git-tree-sha1 = "100521a1d2181cb39036ee1a6955d6b9686bb363"
+uuid = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
+version = "0.6.1"
+
 [[deps.MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
 git-tree-sha1 = "eb006abbd7041c28e0d16260e50a24f8f9104913"
@@ -2342,7 +2351,7 @@ version = "3.5.0+0"
 
 # ╔═╡ Cell order:
 # ╟─3753f1ba-1c66-4fe5-98bb-9776cae1868d
-# ╠═05fdd6d7-89c9-435c-85b7-dc2ec767a66c
+# ╟─05fdd6d7-89c9-435c-85b7-dc2ec767a66c
 # ╟─805c5972-4cfb-4644-8f1f-01d963a77f85
 # ╟─dae8e4cf-4d20-427c-9d27-79debc8c2447
 # ╟─fae37c69-15ed-4201-87da-9c0fa7da912c
@@ -2361,14 +2370,12 @@ version = "3.5.0+0"
 # ╟─2f1d880a-98b4-45b5-bf54-58ee7e23d41c
 # ╠═518a1fa5-e788-4f86-8ece-5cabafafa2cd
 # ╠═ba5598e1-98f4-4c4e-baee-302bdecd10a1
-# ╟─a3e70d22-2970-4163-b21d-1c9211430ec7
-# ╟─fda3b241-0c0e-4844-98c9-2b5596fbb7b2
 # ╟─717aaee0-c53d-41df-b793-cc20c1c362e5
 # ╠═c8c894bb-8d40-47db-bb3f-bd5c3a97b401
 # ╟─477c6709-6e62-461c-a13e-f8a14a670678
 # ╠═eaec6678-0b67-4c10-bc33-1aee35cd517e
 # ╠═9e486b78-93b4-4b7b-9351-cfb7bf38939f
-# ╠═0023d767-7c89-4448-a707-d09ba615d52c
+# ╠═2615c98f-9345-430f-b21c-b6ae574107de
 # ╠═ea3bbf87-d216-45f2-8402-992e71b39037
 # ╟─fc37e1b4-53ec-4fff-929b-4e234fe72520
 # ╟─efb328b1-cb16-4f16-9140-b126c9281a3b
