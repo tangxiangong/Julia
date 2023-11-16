@@ -32,12 +32,13 @@ int main() {
     double T, tau, y0;
     T = 10.0; tau = 1/256; y0 = 1.0;
     int n = 2561;
-    start = clock();
+    
     double* t = (double*)malloc(sizeof(double)*n);
     double* y = (double*)malloc(sizeof(double)*n);
+    start = clock();
     solve(f, T, y0, tau, t, y, n);
     end = clock();
-    printf("time=%f\n", (double)(end-start)/CLOCKS_PER_SEC);
-    // printf("CLOCKS_PER_SEC=%d\n", (int)CLOCKS_PER_SEC);
+    
+    printf("time=%f\n", (double)1000*(end-start)/CLOCKS_PER_SEC);
     return 0;
 }
