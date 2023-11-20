@@ -56,7 +56,7 @@ def area(Shape):
 @area.register
 def _(c: Circle):
     r = c.get_radius()
-    return pi * r
+    return pi * r * r
 
 @area.register
 def _(r: Rectangle):
