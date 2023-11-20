@@ -1,0 +1,11 @@
+include("shape.jl")
+
+c = Circle(2)
+r = Rectangle(1.4, 3)
+t = Triangle(3, 4, 5)
+println("圆周长 $(perimeter(c))")
+println("圆面积 $(area(c))")
+println("矩形周长 $(perimeter(r))")
+println("矩形面积 $(area(r))")
+println("三角形周长 $(perimeter(t))")
+println("三角形面积 $(area(t))")
