@@ -1,17 +1,12 @@
-using Random
-
 function bm(length_t, τ=0.01)
     t = collect(0.0:τ:length_t)
     n = length(t)
-    # noise = sqrt(τ) .* randn(n-1)
     noise = zeros(Float64, n-1)
     x = zeros(Float64, n)
-    # rnd = randn(rng, n-1)
-    @inbounds @simd for i in 2:n
+    @inbounds for i in 2:n
         noise[i-1] = sqrt(τ) * randn()
         x[i] = x[i-1] + noise[i-1]
     end
-    # x = cumsum([0.0;noise])
     return t, x
 end
 
